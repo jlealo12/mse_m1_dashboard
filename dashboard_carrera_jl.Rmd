@@ -1,0 +1,117 @@
+---
+title: "Reporte Carrela La Luz 2022"
+output: 
+  flexdashboard::flex_dashboard:
+    theme:
+      bg: "#141b41"
+      fg: "#ffffff" 
+      primary: "#6f9ceb"
+      base_font:
+        google: Prompt
+      code_font:
+        google: JetBrains Mono
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+# Install thematic and un-comment for themed static plots (i.e., ggplot2)
+thematic::thematic_rmd()
+library(paqueteMET)   # activar paqueteMET
+library(dplyr)
+library(tidyverse)
+
+data("CarreraLuz22")  # cargar la data
+
+data = CarreraLuz22
+
+rNms <- c("Bogota",
+          "Bogotá",               
+          "Bogota D.c",
+          "Cali",
+          "Cali Valle",
+          "Florida",
+          "Florida Va",
+          "Jamundi",
+          "Jamundí",
+          "Popayan",
+          "Popayán",
+          "Tulua",
+          "Tuluá")
+pNms <- c("Bogotá",
+          "Bogotá",               
+          "Bogotá",
+          "Cali",
+          "Cali",
+          "Florida",
+          "Florida",
+          "Jamundí",
+          "Jamundí",
+          "Popayán",
+          "Popayán",
+          "Tuluá",
+          "Tuluá")
+pData <- data
+
+
+for (i in 1:length(rNms)) {
+  pData["origen"][pData["origen"]==rNms[i]] <- pNms[i]
+}
+
+for (i in unique(pData$origen)) {
+  nCat <- length(pData["origen"][pData["origen"]==i])
+  if (nCat<5) {pData["origen"][pData["origen"]==i]<-"Otros"}
+}
+pData["time.H"] = pData["timerun"]/(60*60)
+pData["vel.kmh"] = 10/pData["time.H"]
+```
+
+## Column {data-width="200"}
+
+### Descripción reporte
+
+El presente reporte muestra un análisis descriptivo aplicado a los resultados de la carrera La Luz. La edición 17 de este evento, desarrollada el 23 de Octubre de 2022 en la ciudad de Cali, contó con modalidades de 5K y 10K [1].
+
+Para el presente análisis, se obtuvieron datos sobre los resultados de la modalidad 10K, en particular de las siguientes variables:
+
+1. Sexo del participante
+2. Edad
+3. Origen: ciudad procedencia
+4. Tiempo de carrera
+5. Categoría corredor
+6. Nacionalidad
+
+En adición a estas variables, se calculó la velocidad de los participantes para ser incluída en el reporte.
+
+[1] Web: https://juanchocorrelon.com/intercontinental-10k-luz-2022/
+
+## Column {.tabset data-width="500"}
+
+### Chart A
+
+```{r}
+ggplot(pData, aes(vel.kmh)) +
+  geom_histogram(aes(y=..density..))+
+  facet_grid(vars(sex),vars(categoria))
+```
+
+### Chart B
+
+```{r}
+hist(pData$vel.kmh)
+```
+
+## Column {data-width="300"}
+
+### Chart C
+
+```{r}
+hist(pData$timerun/60)
+```
+
+### Chart D
+
+```{r}
+summarytools::freq(pData$nacionalidad, cumul = T)
+```
