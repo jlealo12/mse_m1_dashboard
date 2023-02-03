@@ -4,6 +4,21 @@ data("CarreraLuz22")  # cargar la dataset
 
 data = CarreraLuz22
 
+summarytools::freq(data$sex, cumul = T,report.nas = FALSE,)
+
+knitr::kable(summarytools::freq(data$categoria,report.nas = F, cumul = T))
+
+tbl <- data %>% 
+  group_by(sex,categoria) %>%
+  summarise_at(vars(timerun), funs(mean, sd))
+
+class(tbl)
+
+
+nMju = length(data["sex"][data["sex"]=="Mujer"])
+nTot = length(data$sex)
+nMju/nTot
+
 glimpse(data)
 
 table(data$sex)
@@ -76,3 +91,5 @@ plot(density(pData$vel.kmh))
 ggplot(pData, aes(vel.kmh)) +
   geom_histogram(aes(y=..density..))+
   facet_grid(vars(sex),vars(categoria))
+
+## Column {data-width="200"}

@@ -16,6 +16,8 @@ output:
 
 ```{r setup, include=FALSE}
 library(flexdashboard)
+library(ggplot2)
+library(fontawesome)
 # Install thematic and un-comment for themed static plots (i.e., ggplot2)
 thematic::thematic_rmd()
 library(paqueteMET)   # activar paqueteMET
@@ -63,12 +65,15 @@ for (i in unique(pData$origen)) {
   nCat <- length(pData["origen"][pData["origen"]==i])
   if (nCat<5) {pData["origen"][pData["origen"]==i]<-"Otros"}
 }
+pData["time.min"] = pData["timerun"]/60
 pData["time.H"] = pData["timerun"]/(60*60)
 pData["vel.kmh"] = 10/pData["time.H"]
+pData["nacionalidad"][pData["nacionalidad"]==0] <- "No Registra"
 ```
 
-## Column {data-width="200"}
 
+Sidebar {.sidebar}
+=======================================================================
 ### Descripción reporte
 
 El presente reporte muestra un análisis descriptivo aplicado a los resultados de la carrera La Luz. La edición 17 de este evento, desarrollada el 23 de Octubre de 2022 en la ciudad de Cali, contó con modalidades de 5K y 10K [1].
@@ -86,32 +91,176 @@ En adición a estas variables, se calculó la velocidad de los participantes par
 
 [1] Web: https://juanchocorrelon.com/intercontinental-10k-luz-2022/
 
-## Column {.tabset data-width="500"}
+Resúmen variables {data-orientation=rows}
+================================================
+## Row 
+### Número de participantes
 
-### Chart A
+```{r}
+valueBox(
+    value = length(data$id),
+    icon = "fa-users",
+  )
+```
+### Distancia total
+
+```{r}
+valueBox(
+    value = "10 km",
+    icon = "fa-road",
+  )
+```
+### Velocidad promedio
+
+```{r}
+valueBox(
+    value = sprintf("%.2f km/h",mean(pData$vel.kmh)),
+    icon = "fa-bolt",
+  )
+```
+### Tiempo promedio carrera
+
+```{r}
+valueBox(
+    value = sprintf("%.2f min",mean(pData$timerun/60)),
+    icon = "fa-clock",
+  )
+```
+
+## Row {data-height="50"}
+**Resumen distribución de variables dataset**
+
+## Row {.tabset .tabset-fade data-height="500"}
+### Categorías
+```{r}
+cTbl = summarytools::freq(data$categoria, cumul = T,report.nas = FALSE,round.digits = 2)
+knitr::kable(summarytools::tb(cTbl,na.rm=T),digits = 2,col.names = c("Categoría","Conteo","% Total","% Acumulado"))
+```
+### Sexos
+```{r}
+sTbl = summarytools::freq(data$sex, cumul = T,report.nas = FALSE,round.digits = 2)
+knitr::kable(summarytools::tb(sTbl,na.rm=T),digits = 2,col.names = c("Sexo","Conteo","% Total","% Acumulado"))
+```
+### Categorías por sexo
+```{r}
+dSC <- table(data$categoria,data$sex) %>% prop.table()*100
+knitr::kable(dSC,digits = 2)
+```
+### Nacionalidades
+```{r}
+nTbl = summarytools::freq(pData$nacionalidad, cumul = T,,order="-freq")
+knitr::kable(summarytools::tb(nTbl,na.rm=T),digits = 2,col.names = c("Nacionalidad","Conteo","% Total","% Acumulado"))
+```
+### Tiempos de carrera
+```{r}
+tTbl = summarytools::descr(pData$time.min)
+knitr::kable(summarytools::tb(tTbl,na.rm=T),digits = 2,)
+```
+> Los tiempos se presentan en minutos
+
+### Velocidades promedio
+```{r}
+vTbl = summarytools::descr(pData$vel.kmh)
+knitr::kable(summarytools::tb(vTbl,na.rm=T),digits = 2,)
+```
+> Las velocidades se muestran en km/h
+
+### Desempeño promedio
+```{r}
+vsmTbl <- pData %>% 
+  group_by(categoria,sex) %>%
+  summarise_at(vars(time.min, vel.kmh), funs(mean, sd))
+
+knitr::kable(vsmTbl,digits = 2,col.names = c("Categoría","Sexo","Tiempo promedio","SD tiempo","Velocidad promedio","SD velocidad"))
+```
+> Las velocidades se muestran en km/h y los tiempos en minutos.
+> Aunque los tiempos de carrera de las mujeres son mayores, sus desviaciones son menores en cada categoría, indicando mayor consistencia en sus desempeños.
+
+
+## Row
+### Participación mujeres
+
+```{r}
+nMuj <- length(data["sex"][data["sex"]=="Mujer"])
+nTot <- length(pData$sex)
+pMuj <- nMuj*100/nTot
+valueBox(
+    value = sprintf("%.0f",pMuj),
+    icon = "fa-percent",
+  )
+```
+### Edad promedio participantes
+
+```{r}
+valueBox(
+    value = sprintf("%.0f años",mean(pData$edad)),
+    icon = "fa-hourglass-half",
+  )
+```
+### Número de categorías
+
+```{r}
+valueBox(
+    value = length(unique(data$categoria)),
+    icon = "fa-signal",
+  )
+```
+### Número de nacionalidades
+
+```{r}
+valueBox(
+    value = length(unique(data$nacionalidad)),
+    icon = "fa-globe",
+  )
+```
+
+
+Análisis distribucional
+================================================
+Row {.tabset .tabset-fade}
+-----------------------------------------------
+### Tiempos de carrera
+```{r}
+ggplot(pData, aes(time.min)) +
+  geom_histogram(aes(y=..density..))+
+  xlab("Tiempo (min)") + ylab("")+
+  ggtitle("Distribución total de tiempos de carrera")
+```
+
+
+### Tiempos detallados
+
+```{r}
+ggplot(pData, aes(time.min)) +
+  geom_histogram(aes(y=..density..))+
+  facet_grid(vars(sex),vars(categoria))+
+  xlab("Tiempo (min)") + ylab("")+
+  ggtitle("Distribución detallada de tiempos por categoría y sexo")
+```
+
+> Aquí iría una descripción de esto
+
+### Velocidad 
 
 ```{r}
 ggplot(pData, aes(vel.kmh)) +
   geom_histogram(aes(y=..density..))+
-  facet_grid(vars(sex),vars(categoria))
+  xlab("Velocidad (km/h)") + ylab("")+
+  ggtitle("Distribución total de velocidades")
 ```
 
-### Chart B
+### Velocidad detallada
 
 ```{r}
-hist(pData$vel.kmh)
+ggplot(pData, aes(vel.kmh)) +
+  geom_histogram(aes(y=..density..))+
+  facet_grid(vars(sex),vars(categoria))+
+  xlab("Velocidad (km/h)") + ylab("")+
+  ggtitle("Distribución detallada de velocidad por categoría y sexo")
 ```
 
-## Column {data-width="300"}
+> Aquí iría una descripción de esto
 
-### Chart C
 
-```{r}
-hist(pData$timerun/60)
-```
-
-### Chart D
-
-```{r}
-summarytools::freq(pData$nacionalidad, cumul = T)
-```
+Análisis de correlación
+================================================
