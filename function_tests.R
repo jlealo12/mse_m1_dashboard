@@ -4,6 +4,13 @@ data("CarreraLuz22")  # cargar la dataset
 
 data = CarreraLuz22
 
+data %>% 
+  group_by(categoria,sex) %>%
+  summarise_at(vars(edad,timerun), funs(mean, sd))
+
+knitr::kable(vsmTbl,digits = 2,col.names = c("Categoría","Sexo","Tiempo promedio (min)","SD tiempo (min)","Edad promedio (años)","SD edad (años)"))
+
+
 summarytools::freq(data$sex, cumul = T,report.nas = FALSE,)
 
 knitr::kable(summarytools::freq(data$categoria,report.nas = F, cumul = T))

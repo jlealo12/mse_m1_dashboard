@@ -131,6 +131,17 @@ valueBox(
 **Resumen distribución de variables dataset**
 
 ## Row {.tabset .tabset-fade data-height="500"}
+### Desempeño promedio
+```{r}
+vsmTbl <- pData %>% 
+  group_by(categoria,sex) %>%
+  summarise_at(vars(edad,time.min), funs(mean, sd))
+
+knitr::kable(vsmTbl,digits = 2,col.names = c("Categoría","Sexo","Edad promedio (años)","Tiempo promedio (min)","SD edad (años)","SD tiempo (min)"))
+```
+> Aunque los tiempos de carrera de las mujeres son mayores, sus desviaciones son menores en varias categorías, indicando mayor consistencia en sus desempeños.
+
+
 ### Categorías
 ```{r}
 cTbl = summarytools::freq(data$categoria, cumul = T,report.nas = FALSE,round.digits = 2)
@@ -148,33 +159,29 @@ knitr::kable(dSC,digits = 2)
 ```
 ### Nacionalidades
 ```{r}
-nTbl = summarytools::freq(pData$nacionalidad, cumul = T,,order="-freq")
+nTbl = summarytools::freq(pData$nacionalidad, cumul = T,order="-freq")
 knitr::kable(summarytools::tb(nTbl,na.rm=T),digits = 2,col.names = c("Nacionalidad","Conteo","% Total","% Acumulado"))
 ```
+### Edades
+```{r}
+tTbl = summarytools::descr(pData$edad)
+knitr::kable(summarytools::tb(tTbl,na.rm=T),digits = 2,)
+```
+> Las edades se reportan en años.
+
 ### Tiempos de carrera
 ```{r}
 tTbl = summarytools::descr(pData$time.min)
 knitr::kable(summarytools::tb(tTbl,na.rm=T),digits = 2,)
 ```
-> Los tiempos se presentan en minutos
+> Los tiempos se presentan en minutos.
 
 ### Velocidades promedio
 ```{r}
 vTbl = summarytools::descr(pData$vel.kmh)
 knitr::kable(summarytools::tb(vTbl,na.rm=T),digits = 2,)
 ```
-> Las velocidades se muestran en km/h
-
-### Desempeño promedio
-```{r}
-vsmTbl <- pData %>% 
-  group_by(categoria,sex) %>%
-  summarise_at(vars(time.min, vel.kmh), funs(mean, sd))
-
-knitr::kable(vsmTbl,digits = 2,col.names = c("Categoría","Sexo","Tiempo promedio","SD tiempo","Velocidad promedio","SD velocidad"))
-```
-> Las velocidades se muestran en km/h y los tiempos en minutos.
-> Aunque los tiempos de carrera de las mujeres son mayores, sus desviaciones son menores en cada categoría, indicando mayor consistencia en sus desempeños.
+> Las velocidades se muestran en km/h.
 
 
 ## Row
@@ -261,6 +268,71 @@ ggplot(pData, aes(vel.kmh)) +
 
 > Aquí iría una descripción de esto
 
+### Edades 
+
+```{r}
+ggplot(pData, aes(edad)) +
+  geom_histogram(aes(y=..density..))+
+  xlab("Edad (años)") + ylab("")+
+  ggtitle("Distribución edades corredores")
+```
+
 
 Análisis de correlación
 ================================================
+Row {.tabset .tabset-fade}
+-----------------------------------------------
+### Tiempos vs edad
+
+```{r}
+fData=subset(pData, pData$time.min<=120) 
+ggplot(fData, aes(edad,time.min)) +
+  geom_point()+
+  stat_smooth(method = "loess" , formula =y ~ x)+
+  coord_cartesian(xlim = c(15, 80), ylim = c(35,120))+
+  xlab("Edad Años") + ylab("Tiempo (min)")+
+  ggtitle("Correlación detallada de tiempos con edad, por categoría y sexo")
+```
+
+> Aquí iría una descripción de esto
+
+### Tiempos vs sexo
+
+```{r}
+fData=subset(pData, pData$time.min<=120) 
+ggplot(fData, aes(sex,time.min)) +
+  geom_boxplot()+
+  coord_cartesian(ylim = c(35,120))+
+  xlab("Sexo") + ylab("Tiempo (min)")+
+  ggtitle("Correlación de tiempos con sexo")
+```
+
+> Aquí iría una descripción de esto
+
+### Tiempos vs sexo detallado
+
+```{r}
+fData=subset(pData, pData$time.min<=120) 
+ggplot(fData, aes(sex,time.min)) +
+  geom_boxplot()+
+  coord_cartesian(ylim = c(35,120))+
+  facet_grid(cols=vars(categoria))+
+  xlab("Sexo") + ylab("Tiempo (min)")+
+  ggtitle("Correlación detallada de tiempos con sexo")
+```
+
+> Aquí iría una descripción de esto
+
+### Tiempos detallados
+
+```{r}
+fData=subset(pData, pData$time.min<=120) 
+ggplot(fData, aes(edad,time.min)) +
+  geom_point()+
+  coord_cartesian(ylim = c(35,120))+
+  facet_grid(vars(sex),vars(categoria),scales="free_x")+
+  xlab("Edad Años") + ylab("Tiempo (min)")+
+  ggtitle("Correlación detallada de tiempos con edad, por categoría y sexo")
+```
+
+> Aquí iría una descripción de esto
