@@ -135,12 +135,13 @@ valueBox(
 ```{r}
 vsmTbl <- pData %>% 
   group_by(categoria,sex) %>%
-  summarise_at(vars(edad,time.min), funs(mean, sd))
+  mutate(Count = n()) %>%
+  group_by(categoria,sex,Count) %>%
+  summarise_at(vars(time.min), funs(mean, median, sd, mad)) 
 
-knitr::kable(vsmTbl,digits = 2,col.names = c("Categoría","Sexo","Edad promedio (años)","Tiempo promedio (min)","SD edad (años)","SD tiempo (min)"))
+knitr::kable(vsmTbl,digits = 2, col.names = c("Categoría","Sexo","No. participantes","Tiempo promedio","Mediana tiempo carrera","SD tiempo","MAD tiempo"))
 ```
-> Aunque los tiempos de carrera de las mujeres son mayores, sus desviaciones son menores en varias categorías, indicando mayor consistencia en sus desempeños.
-
+>Todos los indicadores de tiempo se presentan en minutos.
 
 ### Categorías
 ```{r}
@@ -222,9 +223,9 @@ valueBox(
 ```
 
 
-Análisis distribucional
+Análisis distribucional {data-orientation=columns}
 ================================================
-Row {.tabset .tabset-fade}
+Column {.tabset .tabset-fade}
 -----------------------------------------------
 ### Tiempos de carrera
 ```{r}
@@ -245,7 +246,6 @@ ggplot(pData, aes(time.min)) +
   ggtitle("Distribución detallada de tiempos por categoría y sexo")
 ```
 
-> Aquí iría una descripción de esto
 
 ### Velocidad 
 
@@ -266,7 +266,6 @@ ggplot(pData, aes(vel.kmh)) +
   ggtitle("Distribución detallada de velocidad por categoría y sexo")
 ```
 
-> Aquí iría una descripción de esto
 
 ### Edades 
 
@@ -278,9 +277,18 @@ ggplot(pData, aes(edad)) +
 ```
 
 
-Análisis de correlación
+Column {data-width=200}
+-----------------------------------------------
+Las distribuciones presentadas muestran que:
+
+- Tanto los tiempos, como las velocidades de carrera, muestran distribuciones nromalizadas y con poco sesgo.
+- Se observa un valor atípico, correspondiente a un participante Hombre de la categoría 5 (veteranos C).
+- La baja representatividad de la categoría juvenil dificulta la visualización de los resultados.
+
+
+Análisis de correlación {data-orientation=columns}
 ================================================
-Row {.tabset .tabset-fade}
+Column {.tabset .tabset-fade}
 -----------------------------------------------
 ### Tiempos vs edad
 
@@ -294,7 +302,7 @@ ggplot(fData, aes(edad,time.min)) +
   ggtitle("Correlación detallada de tiempos con edad, por categoría y sexo")
 ```
 
-> Aquí iría una descripción de esto
+> Para facilitar la visualización se eliminan valores atípicos del tiempo (>120 min).
 
 ### Tiempos vs sexo
 
@@ -307,7 +315,7 @@ ggplot(fData, aes(sex,time.min)) +
   ggtitle("Correlación de tiempos con sexo")
 ```
 
-> Aquí iría una descripción de esto
+> Para facilitar la visualización se eliminan valores atípicos del tiempo (>120 min).
 
 ### Tiempos vs sexo detallado
 
@@ -321,18 +329,13 @@ ggplot(fData, aes(sex,time.min)) +
   ggtitle("Correlación detallada de tiempos con sexo")
 ```
 
-> Aquí iría una descripción de esto
+> Para facilitar la visualización se eliminan valores atípicos del tiempo (>120 min).
 
-### Tiempos detallados
 
-```{r}
-fData=subset(pData, pData$time.min<=120) 
-ggplot(fData, aes(edad,time.min)) +
-  geom_point()+
-  coord_cartesian(ylim = c(35,120))+
-  facet_grid(vars(sex),vars(categoria),scales="free_x")+
-  xlab("Edad Años") + ylab("Tiempo (min)")+
-  ggtitle("Correlación detallada de tiempos con edad, por categoría y sexo")
-```
+Column {data-width=200}
+-----------------------------------------------
+Las visualizaciones detalladas permiten observar que:
 
-> Aquí iría una descripción de esto
+- Existe una alta dispersión en los datos que dificulta la identificación de tendencias.
+- El factor que mayor diferencia genera en los tiempos de carrera es el sexo del participante.
+- Adicionalmente, parece existir una relación no lineal del tiempo con la edad del participante.Sin embargo, estas variaciones se generan por las categorías extremas (juveniles y veteranos C).
